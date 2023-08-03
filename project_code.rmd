@@ -47,7 +47,7 @@ life_expectancy_data$Country = as.factor(life_expectancy_data$Country)
 
 The pairs plot of all of the variables was very large, so we will display correlations between the numeric variables in the dataset with a Correlogram instead.
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 #pairs(life_expectancy_data)
 
 #find pairwise correlations between all numeric variables in dataset
@@ -111,8 +111,6 @@ knitr::kable(additive_model_metrics, caption = "Additive Model Summary", digits 
 ### Check model assumptions
 
 ```{r}
-#------- Check model assumptions -------------
-
 #Fitted vs Residuals Plot
 
 plot(fitted(additive_model), resid(additive_model), col = "grey", pch = 20,
@@ -128,13 +126,11 @@ qqline(resid(additive_model), col = "dodgerblue", lwd = 2)
 
 The fitted vs residuals plot and Q-Q plot suggest issues with this model's assumptions, which we will confirm via more formal tests.
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 library(lmtest)
 bptest(additive_model)
-#result shows data violates constant variance assumption!
 
 shapiro.test(resid(additive_model))
-#result shows data violates normality assumption!
 ```
 
 The results of the Breusch-Pagan test and the Shapiro-Wilk test confirm that this model violates both the constant variance assumption and the normality assumption. We will attempt to improve these issues below. 
@@ -209,8 +205,6 @@ log_model_summary = data.frame(
 )
 
 knitr::kable(log_model_summary, caption = "Log Transformed Model Summary", digits = 4)
-
-#log(GDP) is the best result, although it is only a very minimal improvement
 
 ```
 
