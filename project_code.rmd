@@ -1,10 +1,8 @@
 # Title
 
-### Final Data-analysis Project STAT 420 by
+### STAT 420  Final Data Analysis Project - Team KWS
 
-### Saitejas Mopuri, Kimberly Martin, Woo Jeon
-
-# Appendix
+### 
 
 # Introduction
 
@@ -137,3 +135,7 @@ shapiro.test(resid(additive_model))
 # Results
 
 # Discussions
+
+# Appendix
+
+# Saitejas Mopuri, Kimberly Martin, Woo Jeon
