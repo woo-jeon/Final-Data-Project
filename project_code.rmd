@@ -22,28 +22,37 @@ Our objective in this project is to create a model that can effectively predict 
 #read data
 library(readr)
 life_expectancy_data_full = read_csv("Life Expectancy Data.csv")
+```
 
+We will remove rows with empty values to make analysis easier.
+
+```{r}
 #remove rows with empty vals
 life_expectancy_data = na.omit(life_expectancy_data_full)
 View(life_expectancy_data)
+```
 
+
+For our analysis, we have chosen to convert the predictors Status and Country into factor variables, so that we can treat them as categories.
+
+```{r}
 #convert Status (levels: Developing, Developed) to factor variable
 life_expectancy_data$Status = as.factor(life_expectancy_data$Status)
 
 #convert Country to factor variable
 life_expectancy_data$Country = as.factor(life_expectancy_data$Country)
-#levels(life_expectancy_data$Country)
 
-#check structure of dataset to ensure correct factors
-str(life_expectancy_data)
 ```
 
 ### Exploratory Analysis
 
+The pairs plot of all of the variables was very large, so we will display correlations between the numeric variables in the dataset with a Correlogram instead.
+
 ```{r}
+#pairs(life_expectancy_data)
 
 #Pairs plot is very large, so we create a Correlogram to view correlations 
-#pairs(life_expectancy_data)
+
 
 #find pairwise correlations between all numeric variables in dataset
 numeric_cols =  unlist(lapply(life_expectancy_data, is.numeric))
@@ -58,12 +67,11 @@ library(corrplot)
 corrplot(correlations)
 ```
 
+We notice that there are a few variables with very high correlations, so we will attempt to address this issue in our modeling.
+
 ### Initial Additive Model
 
-```{r}
-
-
-```
+First, we create a main effects model using all of the available predictors in the dataset to predict life expectancy.
 
 ```{r}
 #create initial additive model with all predictors
