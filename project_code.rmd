@@ -1,0 +1,139 @@
+# Title
+
+### Final Data-analysis Project STAT 420 by
+
+### Saitejas Mopuri, Kimberly Martin, Woo Jeon
+
+# Appendix
+
+# Introduction
+
+# Methods
+
+### Loading Data
+
+```{r}
+#read data
+library(readr)
+life_expectancy_data_full = read_csv("Life Expectancy Data.csv")
+
+#remove rows with empty vals
+life_expectancy_data = na.omit(life_expectancy_data_full)
+View(life_expectancy_data)
+
+#convert Status (levels: Developing, Developed) to factor variable
+life_expectancy_data$Status = as.factor(life_expectancy_data$Status)
+
+#convert Country to factor variable
+life_expectancy_data$Country = as.factor(life_expectancy_data$Country)
+#levels(life_expectancy_data$Country)
+
+#check structure of dataset to ensure correct factors
+str(life_expectancy_data)
+```
+
+### Exploratory Analysis
+
+```{r}
+
+#Pairs plot is very large, so we create a Correlogram to view correlations 
+#pairs(life_expectancy_data)
+
+#find pairwise correlations between all numeric variables in dataset
+numeric_cols =  unlist(lapply(life_expectancy_data, is.numeric))
+life_expectancy_data_numeric = life_expectancy_data[ , numeric_cols]
+View(life_expectancy_data_numeric)
+
+correlations = cor(life_expectancy_data_numeric)
+
+#plot correlogram (positive correlations are blue, negative correlations are red)
+library(corrplot)
+
+corrplot(correlations)
+```
+
+### Initial Additive Model
+
+```{r}
+
+
+```
+
+```{r}
+#create initial additive model with all predictors
+
+additive_model = lm(life_expectancy_data$`Life expectancy` ~ ., data = life_expectancy_data)
+#summary(additive_model)
+```
+
+### Analyze Model
+
+```{r}
+#Check adjusted R squared
+additive_model_adjr2 = summary(additive_model)$adj.r.squared
+
+#Calculate RMSE
+additive_model_rmse = sqrt(mean(resid(additive_model) ^ 2))
+
+#Calculate LOOCV RMSE
+calc_loocv_rmse = function(model) {
+  sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
+}
+
+additive_model_loocv_rmse = calc_loocv_rmse(additive_model)
+
+#Calculate AIC
+additive_model_AIC = extractAIC(additive_model)
+#it is very large (bad)!
+additive_model_AIC
+```
+
+### Check model assumptions
+
+```{r}
+#------- Check model assumptions -------------
+
+#Fitted vs Residuals Plot
+
+plot(fitted(additive_model), resid(additive_model), col = "grey", pch = 20,
+     xlab = "Fitted", ylab = "Residuals", main = "Data from Model 1")
+abline(h = 0, col = "darkorange", lwd = 2)
+
+#Q-Q Plot
+
+qqnorm(resid(additive_model), main = "Normal Q-Q Plot, fit_1", col = "darkgrey")
+qqline(resid(additive_model), col = "dodgerblue", lwd = 2)
+
+#confirm issues via more formal tests
+
+library(lmtest)
+bptest(additive_model)
+#result shows data violates constant variance assumption!
+
+shapiro.test(resid(additive_model))
+#result shows data violates normality assumption!
+```
+
+```{r}
+#---------- Next step -------------------------------
+
+#We will attempt to fix these issues by removing highly correlated predictors
+#under 5 death & infant deaths : cor = 0.997
+#thinness 1-19 years & thinness 5-9 years : cor = 0.928
+#We'll remove one from each of the above pairs of predictors and reassess model
+
+
+
+#---------- Next step -------------------------------
+#We will attempt to further improve the model by log transforming certain predictor variables (Population & GDP??)
+
+
+
+#---------- Next step --------------------------------
+
+#We will use AIC and BIC backwards search to attempt to further improve the model
+```
+
+# Results
+
+# Discussions
