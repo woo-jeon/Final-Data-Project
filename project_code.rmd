@@ -75,6 +75,14 @@ additive_model = lm(life_expectancy_data$`Life expectancy` ~ ., data = life_expe
 ### Analyze Model
 
 ```{r}
+
+#Calculate LOOCV RMSE
+calc_loocv_rmse = function(model) {
+  sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
+}
+
+# Function to calculate model metrics
+
 calc_model_metrics = function(model) {
   # Calculate adjusted R squared
   model_adjr2 = summary(model)$adj.r.squared
@@ -92,23 +100,10 @@ calc_model_metrics = function(model) {
   list(Adj_R_Squared = model_adjr2, RMSE = model_rmse, LOOCV_RMSE = model_loocv_rmse, AIC = model_AIC)
 }
 
-#Check adjusted R squared
-additive_model_adjr2 = summary(additive_model)$adj.r.squared
+additive_model_metrics = as.data.frame(calc_model_metrics(additive_model))
 
-#Calculate RMSE
-additive_model_rmse = sqrt(mean(resid(additive_model) ^ 2))
-
-#Calculate LOOCV RMSE
-calc_loocv_rmse = function(model) {
-  sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
-}
-
-additive_model_loocv_rmse = calc_loocv_rmse(additive_model)
-
-#Calculate AIC
-additive_model_AIC = extractAIC(additive_model)
-#it is very large (bad)!
-additive_model_AIC
+library(knitr)
+knitr::kable(additive_model_metrics, caption = "Additive Model Summary", digits = 4)
 ```
 
 ### Check model assumptions
