@@ -44,6 +44,24 @@ additive_model = lm(life_expectancy_data$`Life expectancy` ~ ., data = life_expe
 #summary(additive_model)
 
 #------ Analyze Model -------------
+# Function to calculate model metrics
+calc_model_metrics = function(model) {
+  # Calculate adjusted R squared
+  model_adjr2 = summary(model)$adj.r.squared
+  
+  # Calculate RMSE
+  model_rmse = sqrt(mean(resid(model) ^ 2))
+  
+  # Calculate LOOCV RMSE
+  model_loocv_rmse = sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
+  
+  # Calculate AIC
+  model_AIC = extractAIC(model)[2] # get only the AIC value, not the degrees of freedom
+  
+  # Return a list containing the calculated metrics
+  list(Adj_R_Squared = model_adjr2, RMSE = model_rmse, LOOCV_RMSE = model_loocv_rmse, AIC = model_AIC)
+}
+
 
 #Check adjusted R squared
 additive_model_adjr2 = summary(additive_model)$adj.r.squared
@@ -92,12 +110,67 @@ shapiro.test(resid(additive_model))
 #thinness 1-19 years & thinness 5-9 years : cor = 0.928
 #We'll remove one from each of the above pairs of predictors and reassess model
 
+#Removing infant deaths and thinness 1-19 years
+corr_removed_data_1 = life_expectancy_data[ , !(names(life_expectancy_data) %in% c('infant deaths', 'thinness 1-19 years'))]
+corr_removed_model_1 = lm(`Life expectancy` ~ ., data = corr_removed_data_1)
+corr_removed_metrics_1 = calc_model_metrics(corr_removed_model_1)
+
+
+#Removing infant deaths and thinness 5-9 years
+corr_removed_data_2 = life_expectancy_data[ , !(names(life_expectancy_data) %in% c('infant deaths', 'thinness 5-9 years'))]
+corr_removed_model_2 = lm(`Life expectancy` ~ ., data = corr_removed_data_2)
+corr_removed_metrics_2 = calc_model_metrics(corr_removed_model_2)
+
+
+#Removing under 5 deaths and thinness 1-19 years
+corr_removed_data_3 = life_expectancy_data[ , !(names(life_expectancy_data) %in% c('under 5 death', 'thinness 1-19 years'))]
+corr_removed_model_3 = lm(`Life expectancy` ~ ., data = corr_removed_data_3)
+corr_removed_metrics_3 = calc_model_metrics(corr_removed_model_3)
+
+#Removing under 5 deaths and thinness 5-9 years
+corr_removed_data_4 = life_expectancy_data[ , !(names(life_expectancy_data) %in% c('under 5 death', 'thinness 5-9 years'))]
+corr_removed_model_4 = lm(`Life expectancy` ~ ., data = corr_removed_data_4)
+corr_removed_metrics_4 = calc_model_metrics(corr_removed_model_4)
+
+# Create a data frame summarizing the model metrics
+model_summary = data.frame(
+  Variables_Removed = c("infant deaths + thinness 1-19", "infant deaths + thinness 5-9", "under 5 deaths + thinness 1-19", "under 5 deaths + thinness 5-9 years"),
+  Adjusted_R_Squared = c(corr_removed_metrics_1$Adj_R_Squared, corr_removed_metrics_2$Adj_R_Squared, corr_removed_metrics_3$Adj_R_Squared, corr_removed_metrics_4$Adj_R_Squared),
+  RMSE = c(corr_removed_metrics_1$RMSE, corr_removed_metrics_2$RMSE, corr_removed_metrics_3$RMSE, corr_removed_metrics_4$RMSE),
+  LOOCV_RMSE = c(corr_removed_metrics_1$LOOCV_RMSE, corr_removed_metrics_2$LOOCV_RMSE, corr_removed_metrics_3$LOOCV_RMSE, corr_removed_metrics_4$LOOCV_RMSE),
+  AIC = c(corr_removed_metrics_1$AIC, corr_removed_metrics_2$AIC, corr_removed_metrics_3$AIC, corr_removed_metrics_4$AIC)
+)
+
+library(knitr)
+knitr::kable(model_summary, caption = "Model Summary", digits = 4)
+# removing under 5 deaths + thinness 1-19 is the best option
+
 
 
 #---------- Next step -------------------------------
 #We will attempt to further improve the model by log transforming certain predictor variables (Population & GDP??)
 
+log_transform_1 = lm(`Life expectancy` ~ . + log(Population) + log(GDP), data = life_expectancy_data)
+log_transformed_metrics_1 = calc_model_metrics(log_transform_1)
 
+log_transform_2 = lm(`Life expectancy` ~ . + log(GDP), data = life_expectancy_data)
+log_transformed_metrics_2 = calc_model_metrics(log_transform_2)
+
+log_transform_3 = lm(`Life expectancy` ~ . + log(Population), data = life_expectancy_data)
+log_transformed_metrics_3 = calc_model_metrics(log_transform_3)
+
+
+log_model_summary = data.frame(
+  Variables_Log_Transformed = c("Population + GDP", "GDP", "Population"),
+  Adjusted_R_Squared = c(log_transformed_metrics_1$Adj_R_Squared, log_transformed_metrics_2$Adj_R_Squared, log_transformed_metrics_3$Adj_R_Squared),
+  RMSE = c(log_transformed_metrics_1$RMSE, log_transformed_metrics_2$RMSE, log_transformed_metrics_3$RMSE),
+  LOOCV_RMSE = c(log_transformed_metrics_1$LOOCV_RMSE, log_transformed_metrics_2$LOOCV_RMSE, log_transformed_metrics_3$LOOCV_RMSE),
+  AIC = c(log_transformed_metrics_1$AIC, log_transformed_metrics_2$AIC, log_transformed_metrics_3$AIC)
+)
+
+knitr::kable(log_model_summary, caption = "Log Transformed Model Summary", digits = 4)
+
+#log(GDP) is the best result, although it is only a very minimal improvement
 
 #---------- Next step --------------------------------
 
