@@ -1,4 +1,3 @@
-
 ### STAT 420 Final Data Analysis Project - Team KWS
 
 ### 
@@ -30,7 +29,6 @@ We will remove rows with empty values to make analysis easier.
 life_expectancy_data = na.omit(life_expectancy_data_full)
 View(life_expectancy_data)
 ```
-
 
 For our analysis, we have chosen to convert the predictors Status and Country into factor variables, so that we can treat them as categories.
 
@@ -133,11 +131,11 @@ bptest(additive_model)
 shapiro.test(resid(additive_model))
 ```
 
-The results of the Breusch-Pagan test and the Shapiro-Wilk test confirm that this model violates both the constant variance assumption and the normality assumption. We will attempt to improve these issues below. 
+The results of the Breusch-Pagan test and the Shapiro-Wilk test confirm that this model violates both the constant variance assumption and the normality assumption. We will attempt to improve these issues below.
 
 ### Model Improvement: Removing Highly Correlated Variables
 
-We will attempt to fix these issues by removing highly correlated predictors. In particular, the variables `thinness 1-19 years` and `thinness 5-9 years` had a correlation of 0.997. In addition, the variables `under 5 death` and `infant death` had a correlation of 0.928. We'll remove one from each of the above pairs of predictors and reassess the model.     
+We will attempt to fix these issues by removing highly correlated predictors. In particular, the variables `thinness 1-19 years` and `thinness 5-9 years` had a correlation of 0.997. In addition, the variables `under 5 death` and `infant death` had a correlation of 0.928. We'll remove one from each of the above pairs of predictors and reassess the model.
 
 ```{r}
 #---------- Next step -------------------------------
@@ -211,10 +209,157 @@ knitr::kable(log_model_summary, caption = "Log Transformed Model Summary", digit
 Experimenting with various log transformations of the predictor variables `Population` and `GDP` suggests that log transformation of `GDP` resulted in a minimal improvement in AIC.
 
 ```{r}
+n = length(resid(additive_model))
+```
+
+```{r}
 
 #---------- Next step --------------------------------
 
 #We will use AIC and BIC backwards search to attempt to further improve the model
+
+#AIC and BIC for additive models
+additive_mod_back_aic = step(additive_model, direction = "backward")
+additive_mod_back_bic = step(additive_model, direction = "backward", k = log(n))
+
+metrics_additive_mod_back_aic = calc_model_metrics(additive_mod_back_aic)
+metrics_additive_mod_back_bic = calc_model_metrics(additive_mod_back_bic)
+```
+
+```{r}
+# AIC and BIC for models without highly corelated features
+corr_mod_1_back_aic = step(corr_removed_model_1, direction = "backward")
+corr_mod_2_back_aic = step(corr_removed_model_2, direction = "backward")
+corr_mod_3_back_aic = step(corr_removed_model_3, direction = "backward")
+
+corr_mod_1_back_bic = step(corr_removed_model_1, direction = "backward", k = log(n))
+corr_mod_2_back_bic = step(corr_removed_model_2, direction = "backward", k = log(n))
+corr_mod_3_back_bic = step(corr_removed_model_3, direction = "backward", k = log(n))
+
+metrics_corr_mod_1_back_aic = calc_model_metrics(corr_mod_1_back_aic)
+metrics_corr_mod_2_back_aic = calc_model_metrics(corr_mod_2_back_aic)
+metrics_corr_mod_3_back_aic = calc_model_metrics(corr_mod_3_back_aic)
+
+metrics_corr_mod_1_back_bic = calc_model_metrics(corr_mod_1_back_bic)
+metrics_corr_mod_2_back_bic = calc_model_metrics(corr_mod_2_back_bic)
+metrics_corr_mod_3_back_bic = calc_model_metrics(corr_mod_3_back_bic)
+
+```
+
+```{r}
+# AIC and BIC for models with log transformations
+tranform_mod_1_back_aic = step(log_transform_1, direction = "backward")
+tranform_mod_2_back_aic = step(log_transform_2, direction = "backward")
+tranform_mod_3_back_aic = step(log_transform_3, direction = "backward")
+
+tranform_mod_1_back_bic = step(log_transform_1, direction = "backward", k = log(n))
+tranform_mod_2_back_bic = step(log_transform_2, direction = "backward", k = log(n))
+tranform_mod_3_back_bic = step(log_transform_3, direction = "backward", k = log(n))
+
+metrics_tranform_mod_1_back_aic = calc_model_metrics(tranform_mod_1_back_aic)
+metrics_tranform_mod_2_back_aic = calc_model_metrics(tranform_mod_2_back_aic)
+metrics_tranform_mod_3_back_aic = calc_model_metrics(tranform_mod_3_back_aic)
+
+
+metrics_tranform_mod_1_back_bic = calc_model_metrics(tranform_mod_1_back_bic)
+metrics_tranform_mod_2_back_bic = calc_model_metrics(tranform_mod_2_back_bic)
+metrics_tranform_mod_3_back_bic = calc_model_metrics(tranform_mod_3_back_bic)
+
+```
+
+```{r}
+
+
+
+additive_model_summary = data.frame(
+  Variables_Log_Transformed = c("additive AIC", "Additive BIC"),
+  
+  Adjusted_R_Squared = 
+  c(metrics_additive_mod_back_aic$Adj_R_Squared, metrics_additive_mod_back_bic$Adj_R_Squared),
+  
+  RMSE = c(metrics_additive_mod_back_aic$RMSE, metrics_additive_mod_back_bic$RMSE),
+  
+  LOOCV_RMSE = 
+    c(metrics_additive_mod_back_aic$LOOCV_RMSE, metrics_additive_mod_back_bic$LOOCV_RMSE),
+  
+  AIC = c(metrics_additive_mod_back_aic$AIC, metrics_additive_mod_back_bic$AIC)
+  
+)
+
+knitr::kable(additive_model_summary, caption = "Additive model AIC and BIC Summary", digits = 4)
+
+
+```
+
+```{r}
+
+corr_model_summary = data.frame(
+  Variables_Log_Transformed = c("corr AIC model 1", "corr AIC model 2", "corr AIC model 3", 
+                               "corr BIC model 1","corr BIC model 2", "corr BIC model 3" ),
+  
+  Adjusted_R_Squared = 
+  c(metrics_corr_mod_1_back_aic$Adj_R_Squared, metrics_corr_mod_2_back_aic$Adj_R_Squared,
+    metrics_corr_mod_3_back_aic$Adj_R_Squared,
+    metrics_corr_mod_1_back_bic$Adj_R_Squared, metrics_corr_mod_2_back_bic$Adj_R_Squared,
+    metrics_corr_mod_3_back_bic$Adj_R_Squared
+    ),
+  
+  RMSE = 
+      c(metrics_corr_mod_1_back_aic$RMSE, metrics_corr_mod_2_back_aic$RMSE,
+    metrics_corr_mod_3_back_aic$RMSE,
+    metrics_corr_mod_1_back_bic$RMSE, metrics_corr_mod_2_back_bic$RMSE,
+    metrics_corr_mod_3_back_bic$RMSE
+    ),
+  LOOCV_RMSE = 
+    c(metrics_corr_mod_1_back_aic$LOOCV_RMSE, metrics_corr_mod_2_back_aic$LOOCV_RMSE,
+    metrics_corr_mod_3_back_aic$LOOCV_RMSE,
+    metrics_corr_mod_1_back_bic$LOOCV_RMSE, metrics_corr_mod_2_back_bic$LOOCV_RMSE,
+    metrics_corr_mod_3_back_bic$LOOCV_RMSE
+    ),
+  
+  AIC = c(metrics_corr_mod_1_back_aic$AIC, metrics_corr_mod_2_back_aic$AIC,
+    metrics_corr_mod_3_back_aic$AIC,
+    metrics_corr_mod_1_back_bic$AIC, metrics_corr_mod_2_back_bic$AIC,
+    metrics_corr_mod_3_back_bic$AIC
+    )
+)
+
+knitr::kable(corr_model_summary, caption = "correlation transformed model AIC and BIC Summary", digits = 4)
+
+```
+
+```{r}
+transform_model_summary = data.frame(
+  Variables_Log_Transformed = c("Log transform AIC model 1", "Log transform AIC model 2", "Log transform AIC model 3", 
+                               "Log transform BIC model 1","Log transformBIC model 2", "Log transform BIC model 3" ),
+  
+  Adjusted_R_Squared = 
+  c(metrics_tranform_mod_1_back_aic$Adj_R_Squared, metrics_tranform_mod_2_back_aic$Adj_R_Squared, metrics_tranform_mod_3_back_aic$Adj_R_Squared,
+    
+    metrics_tranform_mod_1_back_bic$Adj_R_Squared, metrics_tranform_mod_2_back_bic$Adj_R_Squared, metrics_tranform_mod_3_back_bic$Adj_R_Squared
+    ),
+  
+  RMSE = 
+      c(metrics_tranform_mod_1_back_aic$RMSE, metrics_tranform_mod_2_back_aic$RMSE,
+    metrics_tranform_mod_3_back_aic$RMSE,
+    metrics_tranform_mod_1_back_bic$RMSE, metrics_tranform_mod_2_back_bic$RMSE,
+    metrics_tranform_mod_3_back_bic$RMSE
+    ),
+  LOOCV_RMSE = 
+    c(metrics_tranform_mod_1_back_aic$LOOCV_RMSE, metrics_tranform_mod_2_back_aic$LOOCV_RMSE,
+    metrics_tranform_mod_3_back_aic$LOOCV_RMSE,
+    metrics_tranform_mod_1_back_bic$LOOCV_RMSE, metrics_tranform_mod_2_back_bic$LOOCV_RMSE,
+    metrics_tranform_mod_3_back_bic$LOOCV_RMSE
+    ),
+  
+  AIC = c(metrics_tranform_mod_1_back_aic$AIC, metrics_tranform_mod_2_back_aic$AIC,
+    metrics_tranform_mod_3_back_aic$AIC,
+    metrics_tranform_mod_1_back_bic$AIC, metrics_tranform_mod_2_back_bic$AIC,
+    metrics_tranform_mod_3_back_bic$AIC
+    )
+)
+
+knitr::kable(transform_model_summary, caption = "log transformation model AIC and BIC Summary", digits = 4)
 ```
 
 # Results
