@@ -11,7 +11,7 @@
 
 
 
-<title>project_code.knit</title>
+<title>Predicting Life Expectancy</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -348,16 +348,35 @@ display: none;
 
 
 
+<h1 class="title toc-ignore">Predicting Life Expectancy</h1>
+<h3 class="subtitle">STAT 420 Final Data Analysis Project</h3>
 
 </div>
 
+<div id="TOC">
+<ul>
+<li><a href="#introduction" id="toc-introduction">Introduction</a></li>
+<li><a href="#methods" id="toc-methods">Methods</a>
+<ul>
+<li><a href="#loading-data" id="toc-loading-data">Loading Data</a></li>
+<li><a href="#exploratory-analysis" id="toc-exploratory-analysis">Exploratory Analysis</a></li>
+<li><a href="#initial-additive-model" id="toc-initial-additive-model">Initial Additive Model</a></li>
+<li><a href="#analyze-model" id="toc-analyze-model">Analyze
+Model</a></li>
+<li><a href="#check-model-assumptions" id="toc-check-model-assumptions">Check model assumptions</a></li>
+<li><a href="#model-improvement-removing-highly-correlated-variables" id="toc-model-improvement-removing-highly-correlated-variables">Model
+Improvement: Removing Highly Correlated Variables</a></li>
+<li><a href="#model-improvement-log-transformation-of-predictor-variables" id="toc-model-improvement-log-transformation-of-predictor-variables">Model
+Improvement: Log Transformation of Predictor Variables</a></li>
+<li><a href="#model-improvement-quality-criterion-backwards-search-procedure" id="toc-model-improvement-quality-criterion-backwards-search-procedure">Model
+Improvement: Quality Criterion &amp; Backwards Search Procedure</a></li>
+</ul></li>
+<li><a href="#results" id="toc-results">Results</a></li>
+<li><a href="#discussions" id="toc-discussions">Discussions</a></li>
+<li><a href="#appendix" id="toc-appendix">Appendix</a></li>
+</ul>
+</div>
 
-<div id="stat-420-final-data-analysis-project---team-kws" class="section level3">
-<h3>STAT 420 Final Data Analysis Project - Team KWS</h3>
-</div>
-<div id="section" class="section level3">
-<h3></h3>
-</div>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
 <p>Life expectancy varies greatly across the world. Understanding the
@@ -537,26 +556,24 @@ a correlation of 0.997. In addition, the variables
 <code>under 5 death</code> and <code>infant death</code> had a
 correlation of 0.928. We’ll remove one from each of the above pairs of
 predictors and reassess the model.</p>
-<pre class="r"><code>#---------- Next step -------------------------------
-
-#Removing infant deaths and thinness 1-19 years
+<pre class="r"><code># Removing infant deaths and thinness 1-19 years
 corr_removed_data_1 = life_expectancy_data[ , !(names(life_expectancy_data) %in% c(&#39;infant deaths&#39;, &#39;thinness 1-19 years&#39;))]
 corr_removed_model_1 = lm(`Life expectancy` ~ ., data = corr_removed_data_1)
 corr_removed_metrics_1 = calc_model_metrics(corr_removed_model_1)
 
 
-#Removing infant deaths and thinness 5-9 years
+# Removing infant deaths and thinness 5-9 years
 corr_removed_data_2 = life_expectancy_data[ , !(names(life_expectancy_data) %in% c(&#39;infant deaths&#39;, &#39;thinness 5-9 years&#39;))]
 corr_removed_model_2 = lm(`Life expectancy` ~ ., data = corr_removed_data_2)
 corr_removed_metrics_2 = calc_model_metrics(corr_removed_model_2)
 
 
-#Removing under 5 deaths and thinness 1-19 years
+# Removing under 5 deaths and thinness 1-19 years
 corr_removed_data_3 = life_expectancy_data[ , !(names(life_expectancy_data) %in% c(&#39;under 5 death&#39;, &#39;thinness 1-19 years&#39;))]
 corr_removed_model_3 = lm(`Life expectancy` ~ ., data = corr_removed_data_3)
 corr_removed_metrics_3 = calc_model_metrics(corr_removed_model_3)
 
-#Removing under 5 deaths and thinness 5-9 years
+# Removing under 5 deaths and thinness 5-9 years
 corr_removed_data_4 = life_expectancy_data[ , !(names(life_expectancy_data) %in% c(&#39;under 5 death&#39;, &#39;thinness 5-9 years&#39;))]
 corr_removed_model_4 = lm(`Life expectancy` ~ ., data = corr_removed_data_4)
 corr_removed_metrics_4 = calc_model_metrics(corr_removed_model_4)
@@ -571,9 +588,9 @@ model_summary = data.frame(
 )
 
 library(knitr)
-knitr::kable(model_summary, caption = &quot;Model Summary&quot;, digits = 4)</code></pre>
+knitr::kable(model_summary, caption = &quot;Removed Correlated Variable Model Summary&quot;, digits = 4)</code></pre>
 <table>
-<caption>Model Summary</caption>
+<caption>Removed Correlated Variable Model Summary</caption>
 <colgroup>
 <col width="43%" />
 <col width="23%" />
@@ -631,9 +648,7 @@ still large, so we need to further improve the model.</p>
 <p>We will attempt to further improve the model by log transforming
 certain predictor variables (<code>Population</code> and
 <code>GDP</code>).</p>
-<pre class="r"><code>#---------- Next step -------------------------------
-
-log_transform_1 = lm(`Life expectancy` ~ . + log(Population) + log(GDP), data = life_expectancy_data)
+<pre class="r"><code>log_transform_1 = lm(`Life expectancy` ~ . + log(Population) + log(GDP), data = life_expectancy_data)
 log_transformed_metrics_1 = calc_model_metrics(log_transform_1)
 
 log_transform_2 = lm(`Life expectancy` ~ . + log(GDP), data = life_expectancy_data)
@@ -651,9 +666,9 @@ log_model_summary = data.frame(
   AIC = c(log_transformed_metrics_1$AIC, log_transformed_metrics_2$AIC, log_transformed_metrics_3$AIC)
 )
 
-knitr::kable(log_model_summary, caption = &quot;Log Transformed Model Summary&quot;, digits = 4)</code></pre>
+knitr::kable(log_model_summary, caption = &quot;Log Transformation Model Summary&quot;, digits = 4)</code></pre>
 <table>
-<caption>Log Transformed Model Summary</caption>
+<caption>Log Transformation Model Summary</caption>
 <colgroup>
 <col width="36%" />
 <col width="26%" />
@@ -707,9 +722,7 @@ model.</p>
 Procedure</h3>
 <p>First, we consider both AIC and BIC on the initial additive model
 containing all predictor variables.</p>
-<pre class="r"><code>#---------- Next step --------------------------------
-
-n = length(resid(additive_model))
+<pre class="r"><code>n = length(resid(additive_model))
 
 #AIC and BIC for additive models
 additive_mod_back_aic = step(additive_model, direction = &quot;backward&quot;, trace = 0)
@@ -1183,7 +1196,15 @@ log transformations to our data to improve the model performance. After
 building 6 different enhanced and transformed models, we decided to go
 with the simple additive model as our final model as we did not see any
 significant improvement in the performance of our model.</p>
-<p>In conclusion, Our top models likely make acceptable suggestions for
+<p>A model incorporating all two-way interactions was attempted, but it
+encountered issues (many NaNs in output), suggesting that this approach
+may not be suitable for our data set. This information is included in
+the Appendix for further reference. Future work could involve
+investigating other modeling approaches or refining the current models
+to better adhere to the assumptions of linear regression. This could
+potentially enhance both the prediction accuracy and the inferential
+capabilities of our models.</p>
+<p>In conclusion, our top models likely make acceptable suggestions for
 predicting life expectancy from predictors within the range of these
 predictor values. Still, their violation of linear model assumptions
 prevents us from making probabilistic statements like confidence
@@ -1194,7 +1215,12 @@ need to be more beneficial for inference.</p>
 </div>
 <div id="appendix" class="section level1">
 <h1>Appendix</h1>
-<p>Team Members: Saitejas Mopuri, Kimberly Martin, Woo Jeon</p>
+<pre class="r"><code>additive_model2 = lm(`Life expectancy` ~ . ^ 2, data = life_expectancy_data)
+summary(additive_model2)
+bptest(additive_model2)
+shapiro.test(resid(additive_model2))</code></pre>
+<p>Team KWS<br />
+Team Members: Saitejas Mopuri, Kimberly Martin, Woo Jeon</p>
 </div>
 
 
