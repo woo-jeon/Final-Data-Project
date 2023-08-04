@@ -211,6 +211,8 @@ Experimenting with various log transformations of the predictor variables `Popul
 
 The resulting AIC for this model is still rather large, so we will use AIC and BIC backwards search to attempt to further improve the model.
 
+### Model Improvement: Quality Criterion & Backwards Search Procedure
+
 First, we consider both AIC and BIC on the initial additive model containing all predictor variables.
 
 ```{r}
