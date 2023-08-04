@@ -30,6 +30,7 @@ life_expectancy_data = na.omit(life_expectancy_data_full)
 View(life_expectancy_data)
 ```
 
+
 For our analysis, we have chosen to convert the predictors Status and Country into factor variables, so that we can treat them as categories.
 
 ```{r}
@@ -68,7 +69,7 @@ We notice that there are a few variables with very high correlations, so we will
 First, we create a main effects model using all of the available predictors in the dataset to predict life expectancy.
 
 ```{r}
-additive_model = lm(life_expectancy_data$`Life expectancy` ~ ., data = life_expectancy_data)
+additive_model = lm(`Life expectancy` ~ ., data = life_expectancy_data)
 #summary(additive_model)
 ```
 
@@ -131,11 +132,11 @@ bptest(additive_model)
 shapiro.test(resid(additive_model))
 ```
 
-The results of the Breusch-Pagan test and the Shapiro-Wilk test confirm that this model violates both the constant variance assumption and the normality assumption. We will attempt to improve these issues below.
+The results of the Breusch-Pagan test and the Shapiro-Wilk test confirm that this model violates both the constant variance assumption and the normality assumption. We will attempt to improve these issues below. 
 
 ### Model Improvement: Removing Highly Correlated Variables
 
-We will attempt to fix these issues by removing highly correlated predictors. In particular, the variables `thinness 1-19 years` and `thinness 5-9 years` had a correlation of 0.997. In addition, the variables `under 5 death` and `infant death` had a correlation of 0.928. We'll remove one from each of the above pairs of predictors and reassess the model.
+We will attempt to fix these issues by removing highly correlated predictors. In particular, the variables `thinness 1-19 years` and `thinness 5-9 years` had a correlation of 0.997. In addition, the variables `under 5 death` and `infant death` had a correlation of 0.928. We'll remove one from each of the above pairs of predictors and reassess the model.     
 
 ```{r}
 #---------- Next step -------------------------------
@@ -208,15 +209,15 @@ knitr::kable(log_model_summary, caption = "Log Transformed Model Summary", digit
 
 Experimenting with various log transformations of the predictor variables `Population` and `GDP` suggests that log transformation of `GDP` resulted in a minimal improvement in AIC.
 
-```{r}
-n = length(resid(additive_model))
-```
+The resulting AIC for this model is still rather large, so we will use AIC and BIC backwards search to attempt to further improve the model.
+
+First, we consider both AIC and BIC on the initial additive model containing all predictor variables.
 
 ```{r}
 
 #---------- Next step --------------------------------
 
-#We will use AIC and BIC backwards search to attempt to further improve the model
+n = length(resid(additive_model))
 
 #AIC and BIC for additive models
 additive_mod_back_aic = step(additive_model, direction = "backward", trace = 0)
@@ -226,6 +227,31 @@ metrics_additive_mod_back_aic = calc_model_metrics(additive_mod_back_aic)
 metrics_additive_mod_back_bic = calc_model_metrics(additive_mod_back_bic)
 ```
 
+```{r}
+
+additive_model_summary = data.frame(
+  Criterion = c("additive AIC", "Additive BIC"),
+  
+  Adjusted_R_Squared = 
+  c(metrics_additive_mod_back_aic$Adj_R_Squared, metrics_additive_mod_back_bic$Adj_R_Squared),
+  
+  RMSE = c(metrics_additive_mod_back_aic$RMSE, metrics_additive_mod_back_bic$RMSE),
+  
+  LOOCV_RMSE = 
+    c(metrics_additive_mod_back_aic$LOOCV_RMSE, metrics_additive_mod_back_bic$LOOCV_RMSE),
+  
+  AIC = c(metrics_additive_mod_back_aic$AIC, metrics_additive_mod_back_bic$AIC)
+  
+)
+
+knitr::kable(additive_model_summary, caption = "Additive model AIC and BIC Summary", digits = 4)
+
+```
+
+We see that using AIC and a backwards search on the additive model resulted in a significant improvement in AIC, with an AIC of 1809.740. 
+
+
+Next, we consider using AIC and BIC on the models with highly correlated variables removed.
 ```{r}
 # AIC and BIC for models without highly corelated features
 corr_mod_1_back_aic = step(corr_removed_model_1, direction = "backward", trace = 0)
@@ -243,58 +269,12 @@ metrics_corr_mod_3_back_aic = calc_model_metrics(corr_mod_3_back_aic)
 metrics_corr_mod_1_back_bic = calc_model_metrics(corr_mod_1_back_bic)
 metrics_corr_mod_2_back_bic = calc_model_metrics(corr_mod_2_back_bic)
 metrics_corr_mod_3_back_bic = calc_model_metrics(corr_mod_3_back_bic)
-
-```
-
-```{r}
-# AIC and BIC for models with log transformations
-tranform_mod_1_back_aic = step(log_transform_1, direction = "backward", trace = 0)
-tranform_mod_2_back_aic = step(log_transform_2, direction = "backward", trace = 0)
-tranform_mod_3_back_aic = step(log_transform_3, direction = "backward", trace = 0)
-
-tranform_mod_1_back_bic = step(log_transform_1, direction = "backward", k = log(n), trace = 0)
-tranform_mod_2_back_bic = step(log_transform_2, direction = "backward", k = log(n), trace = 0)
-tranform_mod_3_back_bic = step(log_transform_3, direction = "backward", k = log(n), trace = 0)
-
-metrics_tranform_mod_1_back_aic = calc_model_metrics(tranform_mod_1_back_aic)
-metrics_tranform_mod_2_back_aic = calc_model_metrics(tranform_mod_2_back_aic)
-metrics_tranform_mod_3_back_aic = calc_model_metrics(tranform_mod_3_back_aic)
-
-
-metrics_tranform_mod_1_back_bic = calc_model_metrics(tranform_mod_1_back_bic)
-metrics_tranform_mod_2_back_bic = calc_model_metrics(tranform_mod_2_back_bic)
-metrics_tranform_mod_3_back_bic = calc_model_metrics(tranform_mod_3_back_bic)
-
-```
-
-```{r}
-
-
-
-additive_model_summary = data.frame(
-  Variables_Log_Transformed = c("additive AIC", "Additive BIC"),
-  
-  Adjusted_R_Squared = 
-  c(metrics_additive_mod_back_aic$Adj_R_Squared, metrics_additive_mod_back_bic$Adj_R_Squared),
-  
-  RMSE = c(metrics_additive_mod_back_aic$RMSE, metrics_additive_mod_back_bic$RMSE),
-  
-  LOOCV_RMSE = 
-    c(metrics_additive_mod_back_aic$LOOCV_RMSE, metrics_additive_mod_back_bic$LOOCV_RMSE),
-  
-  AIC = c(metrics_additive_mod_back_aic$AIC, metrics_additive_mod_back_bic$AIC)
-  
-)
-
-knitr::kable(additive_model_summary, caption = "Additive model AIC and BIC Summary", digits = 4)
-
-
 ```
 
 ```{r}
 
 corr_model_summary = data.frame(
-  Variables_Log_Transformed = c("corr AIC model 1", "corr AIC model 2", "corr AIC model 3", 
+  Criterion = c("corr AIC model 1", "corr AIC model 2", "corr AIC model 3", 
                                "corr BIC model 1","corr BIC model 2", "corr BIC model 3" ),
   
   Adjusted_R_Squared = 
@@ -324,7 +304,32 @@ corr_model_summary = data.frame(
     )
 )
 
-knitr::kable(corr_model_summary, caption = "correlation transformed model AIC and BIC Summary", digits = 4)
+knitr::kable(corr_model_summary, caption = "correlations removed model AIC and BIC Summary", digits = 4)
+
+```
+
+The results show that using AIC and BIC on the additive model with highly correlated variables removed results in varying improvement in AIC. 
+
+We will investigate the effect of using these quality criteria and search procedures on the models with log transformations of certain predictors. 
+
+```{r}
+# AIC and BIC for models with log transformations
+tranform_mod_1_back_aic = step(log_transform_1, direction = "backward", trace = 0)
+tranform_mod_2_back_aic = step(log_transform_2, direction = "backward", trace = 0)
+tranform_mod_3_back_aic = step(log_transform_3, direction = "backward", trace = 0)
+
+tranform_mod_1_back_bic = step(log_transform_1, direction = "backward", k = log(n), trace = 0)
+tranform_mod_2_back_bic = step(log_transform_2, direction = "backward", k = log(n), trace = 0)
+tranform_mod_3_back_bic = step(log_transform_3, direction = "backward", k = log(n), trace = 0)
+
+metrics_tranform_mod_1_back_aic = calc_model_metrics(tranform_mod_1_back_aic)
+metrics_tranform_mod_2_back_aic = calc_model_metrics(tranform_mod_2_back_aic)
+metrics_tranform_mod_3_back_aic = calc_model_metrics(tranform_mod_3_back_aic)
+
+
+metrics_tranform_mod_1_back_bic = calc_model_metrics(tranform_mod_1_back_bic)
+metrics_tranform_mod_2_back_bic = calc_model_metrics(tranform_mod_2_back_bic)
+metrics_tranform_mod_3_back_bic = calc_model_metrics(tranform_mod_3_back_bic)
 
 ```
 
@@ -362,10 +367,97 @@ transform_model_summary = data.frame(
 knitr::kable(transform_model_summary, caption = "log transformation model AIC and BIC Summary", digits = 4)
 ```
 
+Interestingly, we see that using AIC and backwards search on each of the models with log transformations of the predictors resulted in an improved AIC of 1809.74. This was the maximum improvement observed during our analysis.
+
 # Results
+
+Our analysis suggests that using AIC and a backwards search on the model with the highly correlated variables (`under 5 deaths` + `thinness 1-19`) removed resulted in the maximum improvement in AIC, which equaled the improvement in AIC found by using AIC and a backwards search on either of the models containing a log transformation of the predictors. These models both resulted in an AIC of 1809.740 and a LOOCV-RMSE of 1.7430. Their adjusted $R^2$ equaled 0.9643, suggesting high goodness-of-fit for both of these models. 
+
+But can we trust these models' results? Let's examine each model's assumptions to see which one is more reliable. First we will examine the model with the correlated variables removed. 
+
+```{r}
+
+corr_model3_summary = data.frame(
+  Criterion = c("corr AIC model 3"),
+  Adjusted_R_Squared = c(metrics_corr_mod_3_back_aic$Adj_R_Squared),
+  RMSE = c(metrics_corr_mod_3_back_aic$RMSE),
+  LOOCV_RMSE = c(metrics_corr_mod_3_back_aic$LOOCV_RMSE),
+  AIC = c(metrics_corr_mod_3_back_aic$AIC)
+)
+
+knitr::kable(corr_model3_summary, caption = "correlations removed model AIC and BIC Summary", digits = 4)
+```
+
+
+```{r}
+#Fitted vs Residuals Plot
+
+plot(fitted(corr_mod_3_back_aic), resid(corr_mod_3_back_aic), col = "grey", pch = 20,
+     xlab = "Fitted", ylab = "Residuals", main = "Data from Model 1")
+abline(h = 0, col = "darkorange", lwd = 2)
+
+#Q-Q Plot
+
+qqnorm(resid(corr_mod_3_back_aic), main = "Normal Q-Q Plot, fit_1", col = "darkgrey")
+qqline(resid(corr_mod_3_back_aic), col = "dodgerblue", lwd = 2)
+
+```
+
+```{r}
+bptest(corr_mod_3_back_aic)
+
+shapiro.test(resid(corr_mod_3_back_aic))
+```
+```{r}
+anova(corr_mod_3_back_aic, additive_model)
+```
+
+The results suggest that this model still violates the constant variance and normality assumptions. So, although the predictive power of this model appears strong, we cannot trust the inferences that are made from this model. In spite of this, an ANOVA F-test suggests that this model is preferred over the larger additive model containing all predictors for predicting life expectancy.
+
+Next we will examine our alternative model with the best improvement in AIC: the model created from using AIC and a backwards search on the log transformed model.
+
+
+```{r}
+tranform_mod_1_back_aic_summary = data.frame(
+  Variables_Log_Transformed = c("Log transform AIC model 1"),
+  Adjusted_R_Squared = c(metrics_tranform_mod_1_back_aic$Adj_R_Squared),
+  RMSE = c(metrics_tranform_mod_1_back_aic$RMSE),
+  LOOCV_RMSE = c(metrics_tranform_mod_1_back_aic$LOOCV_RMSE),
+  AIC = c(metrics_tranform_mod_1_back_aic$AIC)
+)
+
+knitr::kable(tranform_mod_1_back_aic_summary, caption = "log transformation model AIC and BIC Summary", digits = 4)
+```
+
+```{r}
+#Fitted vs Residuals Plot
+
+plot(fitted(tranform_mod_1_back_aic), resid(tranform_mod_1_back_aic), col = "grey", pch = 20,
+     xlab = "Fitted", ylab = "Residuals", main = "Data from Model 1")
+abline(h = 0, col = "darkorange", lwd = 2)
+
+#Q-Q Plot
+
+qqnorm(resid(tranform_mod_1_back_aic), main = "Normal Q-Q Plot, fit_1", col = "darkgrey")
+qqline(resid(tranform_mod_1_back_aic), col = "dodgerblue", lwd = 2)
+```
+```{r}
+bptest(tranform_mod_1_back_aic)
+
+shapiro.test(resid(tranform_mod_1_back_aic))
+```
+
+
+The results suggest that, despite the attempts at improvement, this model also violates the constant variance and normality assumptions. 
+
+```{r}
+anova(tranform_mod_1_back_aic, additive_model)
+```
+Despite this, comparing this model with the full additive model suggests that we prefer this smaller model for predicting life expectancy.
 
 # Discussions
 
 # Appendix
 
-# Saitejas Mopuri, Kimberly Martin, Woo Jeon
+Team Members: Saitejas Mopuri, Kimberly Martin, Woo Jeon
+
