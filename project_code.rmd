@@ -1,10 +1,10 @@
 ---
+title: "Predicting Life Expectancy"
+subtitle: "STAT 420 Final Data Analysis Project"
+output: 
+  html_document:
+    toc: true
 ---
----
-
-### STAT 420 Final Data Analysis Project - Team KWS
-
-### 
 
 # Introduction
 
@@ -459,10 +459,20 @@ In this section, we will delve into the implications and interpretation of the r
 
 When we picked this data set from the World health organization (WHO), our primary goal was to identify the key predictors that affect the life expectancy of the countries and use these predictors to come up with hypotheses and form models and methods based on these hypotheses and provide meaningful insights based on our discoveries.
 
-Upon investigating the data set, we noticed some highly correlated variables, such as thinness 1-19 years and thinness 5-9 years, had a correlation of 0.997, and the variables under 5 death and infant death had a correlation of 0.928. We hypothesize that these variables created noise for our models to make accurate predictions. We have also applied log transformations to our data to improve the model performance. After building 6 different enhanced and transformed models, we decided to go with the simple additive model as our final model as we did not see any significant improvement in the performance of our model. It is also likely that the dataset had purposely excluded categories that did not have significant connections to life expectancy. In other words, all the variables are important to some degree.
+Upon investigating the data set, we noticed some highly correlated variables, such as thinness 1-19 years and thinness 5-9 years, had a correlation of 0.997, and the variables under 5 death and infant death had a correlation of 0.928. We hypothesize that these variables created noise for our models to make accurate predictions. We have also applied log transformations to our data to improve the model performance. After building 6 different enhanced and transformed models, we decided to go with the simple additive model as our final model as we did not see any significant improvement in the performance of our model.
 
-In conclusion, Our top models likely make acceptable suggestions for predicting life expectancy from predictors within the range of these predictor values. Still, their violation of linear model assumptions prevents us from making probabilistic statements like confidence intervals with these models. In other words, we might get reasonable predictions for the response variable using these models. Still, the estimates of the regression coefficients have increased variance and need to be more beneficial for inference.
+A model incorporating all two-way interactions was attempted, but it encountered issues (many NaNs in output), suggesting that this approach may not be suitable for our data set. This information is included in the Appendix for further reference. Future work could involve investigating other modeling approaches or refining the current models to better adhere to the assumptions of linear regression. This could potentially enhance both the prediction accuracy and the inferential capabilities of our models.
+
+In conclusion, our top models likely make acceptable suggestions for predicting life expectancy from predictors within the range of these predictor values. Still, their violation of linear model assumptions prevents us from making probabilistic statements like confidence intervals with these models. In other words, we might get reasonable predictions for the response variable using these models. Still, the estimates of the regression coefficients have increased variance and need to be more beneficial for inference.
 
 # Appendix
 
+```{r eval=FALSE}
+additive_model2 = lm(`Life expectancy` ~ . ^ 2, data = life_expectancy_data)
+summary(additive_model2)
+bptest(additive_model2)
+shapiro.test(resid(additive_model2))
+```
+
+Team KWS\
 Team Members: Saitejas Mopuri, Kimberly Martin, Woo Jeon
