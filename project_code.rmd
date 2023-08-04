@@ -219,8 +219,8 @@ n = length(resid(additive_model))
 #We will use AIC and BIC backwards search to attempt to further improve the model
 
 #AIC and BIC for additive models
-additive_mod_back_aic = step(additive_model, direction = "backward")
-additive_mod_back_bic = step(additive_model, direction = "backward", k = log(n))
+additive_mod_back_aic = step(additive_model, direction = "backward", trace = 0)
+additive_mod_back_bic = step(additive_model, direction = "backward", k = log(n), trace = 0)
 
 metrics_additive_mod_back_aic = calc_model_metrics(additive_mod_back_aic)
 metrics_additive_mod_back_bic = calc_model_metrics(additive_mod_back_bic)
@@ -228,13 +228,13 @@ metrics_additive_mod_back_bic = calc_model_metrics(additive_mod_back_bic)
 
 ```{r}
 # AIC and BIC for models without highly corelated features
-corr_mod_1_back_aic = step(corr_removed_model_1, direction = "backward")
-corr_mod_2_back_aic = step(corr_removed_model_2, direction = "backward")
-corr_mod_3_back_aic = step(corr_removed_model_3, direction = "backward")
+corr_mod_1_back_aic = step(corr_removed_model_1, direction = "backward", trace = 0)
+corr_mod_2_back_aic = step(corr_removed_model_2, direction = "backward", trace = 0)
+corr_mod_3_back_aic = step(corr_removed_model_3, direction = "backward", trace = 0)
 
-corr_mod_1_back_bic = step(corr_removed_model_1, direction = "backward", k = log(n))
-corr_mod_2_back_bic = step(corr_removed_model_2, direction = "backward", k = log(n))
-corr_mod_3_back_bic = step(corr_removed_model_3, direction = "backward", k = log(n))
+corr_mod_1_back_bic = step(corr_removed_model_1, direction = "backward", k = log(n), trace = 0)
+corr_mod_2_back_bic = step(corr_removed_model_2, direction = "backward", k = log(n), trace = 0)
+corr_mod_3_back_bic = step(corr_removed_model_3, direction = "backward", k = log(n), trace = 0)
 
 metrics_corr_mod_1_back_aic = calc_model_metrics(corr_mod_1_back_aic)
 metrics_corr_mod_2_back_aic = calc_model_metrics(corr_mod_2_back_aic)
@@ -248,13 +248,13 @@ metrics_corr_mod_3_back_bic = calc_model_metrics(corr_mod_3_back_bic)
 
 ```{r}
 # AIC and BIC for models with log transformations
-tranform_mod_1_back_aic = step(log_transform_1, direction = "backward")
-tranform_mod_2_back_aic = step(log_transform_2, direction = "backward")
-tranform_mod_3_back_aic = step(log_transform_3, direction = "backward")
+tranform_mod_1_back_aic = step(log_transform_1, direction = "backward", trace = 0)
+tranform_mod_2_back_aic = step(log_transform_2, direction = "backward", trace = 0)
+tranform_mod_3_back_aic = step(log_transform_3, direction = "backward", trace = 0)
 
-tranform_mod_1_back_bic = step(log_transform_1, direction = "backward", k = log(n))
-tranform_mod_2_back_bic = step(log_transform_2, direction = "backward", k = log(n))
-tranform_mod_3_back_bic = step(log_transform_3, direction = "backward", k = log(n))
+tranform_mod_1_back_bic = step(log_transform_1, direction = "backward", k = log(n), trace = 0)
+tranform_mod_2_back_bic = step(log_transform_2, direction = "backward", k = log(n), trace = 0)
+tranform_mod_3_back_bic = step(log_transform_3, direction = "backward", k = log(n), trace = 0)
 
 metrics_tranform_mod_1_back_aic = calc_model_metrics(tranform_mod_1_back_aic)
 metrics_tranform_mod_2_back_aic = calc_model_metrics(tranform_mod_2_back_aic)
