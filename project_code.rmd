@@ -30,7 +30,6 @@ life_expectancy_data = na.omit(life_expectancy_data_full)
 #View(life_expectancy_data)
 ```
 
-
 For our analysis, we have chosen to convert the predictors Status and Country into factor variables, so that we can treat them as categories.
 
 ```{r}
@@ -132,11 +131,11 @@ bptest(additive_model)
 shapiro.test(resid(additive_model))
 ```
 
-The results of the Breusch-Pagan test and the Shapiro-Wilk test confirm that this model violates both the constant variance assumption and the normality assumption. We will attempt to improve these issues below. 
+The results of the Breusch-Pagan test and the Shapiro-Wilk test confirm that this model violates both the constant variance assumption and the normality assumption. We will attempt to improve these issues below.
 
 ### Model Improvement: Removing Highly Correlated Variables
 
-We will attempt to fix these issues by removing highly correlated predictors. In particular, the variables `thinness 1-19 years` and `thinness 5-9 years` had a correlation of 0.997. In addition, the variables `under 5 death` and `infant death` had a correlation of 0.928. We'll remove one from each of the above pairs of predictors and reassess the model.     
+We will attempt to fix these issues by removing highly correlated predictors. In particular, the variables `thinness 1-19 years` and `thinness 5-9 years` had a correlation of 0.997. In addition, the variables `under 5 death` and `infant death` had a correlation of 0.928. We'll remove one from each of the above pairs of predictors and reassess the model.
 
 ```{r}
 #---------- Next step -------------------------------
@@ -250,10 +249,10 @@ knitr::kable(additive_model_summary, caption = "Additive model AIC and BIC Summa
 
 ```
 
-We see that using AIC and a backwards search on the additive model resulted in a significant improvement in AIC, with an AIC of 1809.740. 
-
+We see that using AIC and a backwards search on the additive model resulted in a significant improvement in AIC, with an AIC of 1809.740.
 
 Next, we consider using AIC and BIC on the models with highly correlated variables removed.
+
 ```{r}
 # AIC and BIC for models without highly corelated features
 corr_mod_1_back_aic = step(corr_removed_model_1, direction = "backward", trace = 0)
@@ -310,9 +309,9 @@ knitr::kable(corr_model_summary, caption = "correlations removed model AIC and B
 
 ```
 
-The results show that using AIC and BIC on the additive model with highly correlated variables removed results in varying improvement in AIC. 
+The results show that using AIC and BIC on the additive model with highly correlated variables removed results in varying improvement in AIC.
 
-We will investigate the effect of using these quality criteria and search procedures on the models with log transformations of certain predictors. 
+We will investigate the effect of using these quality criteria and search procedures on the models with log transformations of certain predictors.
 
 ```{r}
 # AIC and BIC for models with log transformations
@@ -373,9 +372,9 @@ Interestingly, we see that using AIC and backwards search on each of the models 
 
 # Results
 
-Our analysis suggests that using AIC and a backwards search on the model with the highly correlated variables (`under 5 deaths` + `thinness 1-19`) removed resulted in the maximum improvement in AIC, which equaled the improvement in AIC found by using AIC and a backwards search on either of the models containing a log transformation of the predictors. These models both resulted in an AIC of 1809.740 and a LOOCV-RMSE of 1.7430. Their adjusted $R^2$ equaled 0.9643, suggesting high goodness-of-fit for both of these models. 
+Our analysis suggests that using AIC and a backwards search on the model with the highly correlated variables (`under 5 deaths` + `thinness 1-19`) removed resulted in the maximum improvement in AIC, which equaled the improvement in AIC found by using AIC and a backwards search on either of the models containing a log transformation of the predictors. These models both resulted in an AIC of 1809.740 and a LOOCV-RMSE of 1.7430. Their adjusted $R^2$ equaled 0.9643, suggesting high goodness-of-fit for both of these models.
 
-But can we trust these models' results? Let's examine each model's assumptions to see which one is more reliable. First we will examine the model with the correlated variables removed. 
+But can we trust these models' results? Let's examine each model's assumptions to see which one is more reliable. First we will examine the model with the correlated variables removed.
 
 ```{r}
 
@@ -389,7 +388,6 @@ corr_model3_summary = data.frame(
 
 knitr::kable(corr_model3_summary, caption = "correlations removed model AIC and BIC Summary", digits = 4)
 ```
-
 
 ```{r}
 #Fitted vs Residuals Plot
@@ -410,6 +408,7 @@ bptest(corr_mod_3_back_aic)
 
 shapiro.test(resid(corr_mod_3_back_aic))
 ```
+
 ```{r}
 anova(corr_mod_3_back_aic, additive_model)
 ```
@@ -417,7 +416,6 @@ anova(corr_mod_3_back_aic, additive_model)
 The results suggest that this model still violates the constant variance and normality assumptions. So, although the predictive power of this model appears strong, we cannot trust the inferences that are made from this model. In spite of this, an ANOVA F-test suggests that this model is preferred over the larger additive model containing all predictors for predicting life expectancy.
 
 Next we will examine our alternative model with the best improvement in AIC: the model created from using AIC and a backwards search on the log transformed model.
-
 
 ```{r}
 tranform_mod_1_back_aic_summary = data.frame(
@@ -443,23 +441,31 @@ abline(h = 0, col = "darkorange", lwd = 2)
 qqnorm(resid(tranform_mod_1_back_aic), main = "Normal Q-Q Plot, fit_1", col = "darkgrey")
 qqline(resid(tranform_mod_1_back_aic), col = "dodgerblue", lwd = 2)
 ```
+
 ```{r}
 bptest(tranform_mod_1_back_aic)
 
 shapiro.test(resid(tranform_mod_1_back_aic))
 ```
 
-
-The results suggest that, despite the attempts at improvement, this model also violates the constant variance and normality assumptions. 
+The results suggest that, despite the attempts at improvement, this model also violates the constant variance and normality assumptions.
 
 ```{r}
 anova(tranform_mod_1_back_aic, additive_model)
 ```
+
 Despite this, comparing this model with the full additive model suggests that we prefer this smaller model for predicting life expectancy.
 
 # Discussions
 
+In this section, we will delve into the implications and interpretation of the results, connecting the Introduction, Methods, and Results to draw meaningful conclusions.
+
+When we picked this data set from the World health organization (WHO), our primary goal was to identify the key predictors that affect the life expectancy of the countries and use these predictors to come up with hypotheses and form models and methods based on these hypotheses and provide meaningful insights based on our discoveries.
+
+Upon investigating the data set, we noticed some highly correlated variables, such as thinness 1-19 years and thinness 5-9 years, had a correlation of 0.997, and the variables under 5 death and infant death had a correlation of 0.928. We hypothesize that these variables created noise for our models to make accurate predictions. We have also applied log transformations to our data to improve the model performance. After building 6 different enhanced and transformed models, we decided to go with the simple additive model as our final model as we did not see any significant improvement in the performance of our model.
+
+In conclusion, Our top models likely make acceptable suggestions for predicting life expectancy from predictors within the range of these predictor values. Still, their violation of linear model assumptions prevents us from making probabilistic statements like confidence intervals with these models. In other words, we might get reasonable predictions for the response variable using these models. Still, the estimates of the regression coefficients have increased variance and need to be more beneficial for inference.
+
 # Appendix
 
 Team Members: Saitejas Mopuri, Kimberly Martin, Woo Jeon
-
