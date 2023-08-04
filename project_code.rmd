@@ -27,7 +27,7 @@ We will remove rows with empty values to make analysis easier.
 ```{r}
 #remove rows with empty vals
 life_expectancy_data = na.omit(life_expectancy_data_full)
-View(life_expectancy_data)
+#View(life_expectancy_data)
 ```
 
 
@@ -52,7 +52,7 @@ The pairs plot of all of the variables was very large, so we will display correl
 #find pairwise correlations between all numeric variables in dataset
 numeric_cols =  unlist(lapply(life_expectancy_data, is.numeric))
 life_expectancy_data_numeric = life_expectancy_data[ , numeric_cols]
-View(life_expectancy_data_numeric)
+#View(life_expectancy_data_numeric)
 
 correlations = cor(life_expectancy_data_numeric)
 
